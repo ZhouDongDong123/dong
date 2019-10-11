@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.funzzz.mapper.EmployeesMapper" >
+  <resultMap id="customerMap" type="com.funzzz.model.Customer" >
+    <id column="cid" property="cid" jdbcType="INTEGER" />
+    <result column="cusName" property="cusname" jdbcType="VARCHAR" />
+    <result column="Address" property="address" jdbcType="VARCHAR" />
+    <result column="contact" property="contact" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="BaseResultMap" type="com.funzzz.model.Employees" >
+    <id column="emp_id" property="empId" jdbcType="INTEGER" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="emptype" property="emptype" jdbcType="VARCHAR" />
+	    <!--  一对多子权限查询  -->
+		<collection property="list" select="selectCustomerByEmpId" column="emp_id" />
+    
+  </resultMap>
+  	<!-- 这个用来查找对应的顾客 根据专员id -->
+  <select id="selectCustomerByEmpId" parameterType="Integer" resultMap="customerMap" >
+  		   select c.cid,c.cusName,c.Address,c.contact,c.tel,c.email from customer c,employees e,customershare sc
+				    where c.cid=sc.cid and sc.emp_id = e.emp_id and e.emp_id=#{emp_id}
+  </select>
+  
+  
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    emp_id, username, password, tel, name, email, emptype, roleId
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.funzzz.model.EmployeesExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from employees
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from employees
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </select>
+  
+  
+   <select id="selectEmployeesByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from employees
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </select>
+  <!-- 登陆检查 -->
+
+  <select id="selectEmployeeForLogin" resultType="employees" parameterType="employees" >
+    select 
+    emp_id empId, username, password, tel, name, email, emptype, roleId
+    from employees  where username = #{username}
+  </select>
+  
+  <!-- 分页查询使用pageHelper -->
+<!--   <select id="selectAllEmployee" resultType="employees" >-->
+<!--    select emp_id as empId, username, password, tel, name, email, emptype,roleId from employees-->
+<!--  </select>-->
+  <select id="selectAllEmployee" resultMap="BaseResultMap" >
+    select emp_id, username, password, tel, name, email, emptype, roleId from employees
+  </select>
+<!--  //获取所有员工    不包括经理        用于分页 会被插件拦截的-->
+  <select id="selectAllEmployeeNotManager" resultMap="BaseResultMap" >
+    select emp_id, username, password, tel, name, email, emptype, roleId from employees where emptype='普通员工'
+  </select>
+  
+   <!-- 按条件分页查询使用pageHelper -->
+   <select id="selectAllEmployeeByCondition" resultType="employees" parameterType="String">
+   select  emp_id as empId, username, password, tel, name, email, emptype,roleId from employees where (emp_id like CONCAT('%',#{condition},'%')) | (username like CONCAT('%',#{condition},'%')) | (PASSWORD like CONCAT('%',#{condition},'%')) | 
+	(tel  like CONCAT('%',#{condition},'%'))  | (NAME like CONCAT('%',#{condition},'%'))| (email like CONCAT('%',#{condition},'%'))      | (emptype like CONCAT('%',#{condition},'%')) | (roleId like CONCAT('%',#{condition},'%'))
+  </select>
+   <!-- 通过用户名得到角色名 -->
+   <select id="selectPasswordByUserName" resultType="String" parameterType="String">
+    select password from employees where username=#{username}
+  </select>
+<!-- 通过id得到名字 -->
+   <select id="selectUserNameById" resultType="String" parameterType="Integer">
+    select username from employees where emp_id=#{emp_id}
+  </select>
+  
+  
+   <select id="selectCountByUsername" resultType="Integer" parameterType="String">
+    select count(emp_id) from employees where username=#{username}
+  </select>
+  
+  
+  <!-- 通过名字得到id -->
+   <select id="selectEmpIdByUsername" resultType="Integer" parameterType="String">
+    select emp_id from employees where username=#{username}
+  </select>
+  
+  <!-- 通过名字修改用户 -->
+   <update id="updatePasswordByUsername" parameterType="employees">
+     update  employees set password=#{password}  where username=#{username} 
+  </update>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from employees
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.funzzz.model.EmployeesExample" >
+    delete from employees
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.funzzz.model.Employees" >
+    insert into employees (emp_id, username, password, 
+      tel, name, email, emptype
+      )
+    values (#{empId,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
+      #{tel,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{emptype,jdbcType=VARCHAR}
+      )
+  </insert>
+  
+  
+  
+  <insert id="insertSelective" parameterType="com.funzzz.model.Employees" >
+    insert into employees
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="empId != null" >
+        emp_id,
+      </if>
+      <if test="username != null" >
+        username,
+      </if>
+      <if test="password != null" >
+        password,
+      </if>
+      <if test="tel != null" >
+        tel,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="email != null" >
+        email,
+      </if>
+      <if test="emptype != null" >
+        emptype,
+      </if>
+      <if test="roleId != null" >
+        roleId,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="empId != null" >
+        #{empId,jdbcType=INTEGER},
+      </if>
+      <if test="username != null" >
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="emptype != null" >
+        #{emptype,jdbcType=VARCHAR},
+      </if>
+      <if test="roleId != null" >
+        #{roleId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  
+  
+  
+  
+  <select id="countByExample" parameterType="com.funzzz.model.EmployeesExample" resultType="java.lang.Integer" >
+    select count(*) from employees
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update employees
+    <set >
+      <if test="record.empId != null" >
+        emp_id = #{record.empId,jdbcType=INTEGER},
+      </if>
+      <if test="record.username != null" >
+        username = #{record.username,jdbcType=VARCHAR},
+      </if>
+      <if test="record.password != null" >
+        password = #{record.password,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tel != null" >
+        tel = #{record.tel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.email != null" >
+        email = #{record.email,jdbcType=VARCHAR},
+      </if>
+      <if test="record.emptype != null" >
+        emptype = #{record.emptype,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update employees
+    set emp_id = #{record.empId,jdbcType=INTEGER},
+      username = #{record.username,jdbcType=VARCHAR},
+      password = #{record.password,jdbcType=VARCHAR},
+      tel = #{record.tel,jdbcType=VARCHAR},
+      name = #{record.name,jdbcType=VARCHAR},
+      email = #{record.email,jdbcType=VARCHAR},
+      emptype = #{record.emptype,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.funzzz.model.Employees" >
+    update employees
+    <set >
+      <if test="username != null" >
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        tel = #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="emptype != null" >
+        emptype = #{emptype,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.funzzz.model.Employees" >
+    update employees
+    set username = #{username,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      tel = #{tel,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      emptype = #{emptype,jdbcType=VARCHAR}
+    where emp_id = #{empId,jdbcType=INTEGER}
+  </update>
+</mapper>

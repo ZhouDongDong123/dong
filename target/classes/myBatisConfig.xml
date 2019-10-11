@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<!-- 这个是加载数据库配置文件 -->
+	<!-- spring中配置 -->	
+	<!-- <properties resource="db.properties" /> -->
+	<!-- 自定义别名 -->
+	<typeAliases>
+		<package name="com.funzzz.model" />
+		
+		<!-- <typeAlias alias="customer" type="com.funzzz.model.Customer" />
+		批量别名定义，扫描整个包下的类，别名为类名（大小写不敏感）
+		<package name="cn.itcast.mybatis.pojo" />
+		<package name="其它包" /> -->
+	</typeAliases>
+	
+	<plugins>
+	    <!-- com.github.pagehelper为PageHelper类所在包名 -->
+	    <plugin interceptor="com.github.pagehelper.PageInterceptor">
+	        <!-- 使用下面的方式配置参数，后面会有所有的参数介绍 -->
+	        <property name="rowBoundsWithCount" value="true"/>
+	        <property name="pageSizeZero" value="true"/>
+	        <property name="reasonable" value="true"/>
+		</plugin>
+	</plugins>
+  <!-- 这个到spring中配置连接池可代替environments配置 -->
+<!--   <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC">
+      </transactionManager>
+      
+      <dataSource type="POOLED">
+        <property name="driver" value="${jdbc.Driver}"/>
+        <property name="url" value="${jdbc.URL}"/>
+        <property name="username" value="${jdbc.USER}"/>
+        <property name="password" value="${jdbc.PASSWORD}"/>
+      </dataSource>
+	  
+    </environment>
+	
+  </environments> -->
+
+  <mappers>
+    <!-- <mapper resource="com/funzzz/Dao/AdminMapper.xml"/> -->
+    <package name="com.funzzz.mapper" />
+  </mappers>
+</configuration>

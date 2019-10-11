@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.funzzz.mapper.PermissionMapper" >
+  <resultMap id="BaseResultMap" type="com.funzzz.model.Permission" >
+    <id column="permissionId" property="permissionid" jdbcType="INTEGER" />
+    <result column="pname" property="pname" jdbcType="VARCHAR" />
+    <result column="purl" property="purl" jdbcType="VARCHAR" />
+    <result column="ismenu" property="ismenu" jdbcType="INTEGER" />
+    <result column="parentId" property="parentid" jdbcType="INTEGER" />
+    <result column="pinfo" property="pinfo" jdbcType="VARCHAR" />
+    <result column="pcolor" property="pcolor" jdbcType="VARCHAR" />
+    <!--  一对多子权限查询  -->
+	<collection property="list" select="selectPermissionByParentId" column="permissionId" />
+  </resultMap>
+  
+  <resultMap id="ResultMapHadSon" type="com.funzzz.model.Permission" >
+    <id column="permissionId" property="permissionid" jdbcType="INTEGER" />
+    <result column="pname" property="pname" jdbcType="VARCHAR" />
+    <result column="purl" property="purl" jdbcType="VARCHAR" />
+    <result column="ismenu" property="ismenu" jdbcType="INTEGER" />
+    <result column="parentId" property="parentid" jdbcType="INTEGER" />
+    <result column="pinfo" property="pinfo" jdbcType="VARCHAR" />
+ 
+	<!--  一对多子权限查询  -->
+	<collection property="list" select="selectPermissionByParentId" column="permissionId" />
+	
+  </resultMap>
+<!-- ==========================    selectPermissionByParentId     ================================ -->
+  <select id="selectPermissionByParentId" parameterType="Integer" resultMap="BaseResultMap" >
+  	select * from permission where parentId = #{parentId}
+  </select>
+  <!-- ==========================    selectPermissionByUserName(德到权限名)     ================================ -->
+   <select id="selectPermissionByUserName" parameterType="String" resultType="String" >
+	  	select p.pname from permission p,employees e,rolepermission rm where e.roleId = rm.roleId 
+	   	and rm.permissionId = p.permissionId 
+	   	and e.username=#{username}
+  </select>
+  
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    permissionId, pname, purl, ismenu, parentId, pinfo ,pcolor
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.funzzz.model.PermissionExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from permission
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from permission
+    where permissionId = #{permissionid,jdbcType=INTEGER}
+  </select>
+<!--selectAllPermissions查找所有权限  -->
+   <select id="selectAllPermissions" resultMap="BaseResultMap" >
+    select 
+    <include refid="Base_Column_List" />
+    from permission
+  </select>
+  
+  
+  
+  <!--selectAllPermissions查找所有权限  -->
+   <select id="selectAllMeuns" resultMap="BaseResultMap" >
+    select 
+    <include refid="Base_Column_List" />
+    from permission where parentId = 0
+  </select>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from permission
+    where permissionId = #{permissionid,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.funzzz.model.PermissionExample" >
+    delete from permission
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.funzzz.model.Permission" >
+    insert into permission (permissionId, pname, purl, 
+      ismenu, parentId, pinfo
+      )
+    values (#{permissionid,jdbcType=INTEGER}, #{pname,jdbcType=VARCHAR}, #{purl,jdbcType=VARCHAR}, 
+      #{ismenu,jdbcType=INTEGER}, #{parentid,jdbcType=INTEGER}, #{pinfo,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.funzzz.model.Permission" >
+    insert into permission
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="permissionid != null" >
+        permissionId,
+      </if>
+      <if test="pname != null" >
+        pname,
+      </if>
+      <if test="purl != null" >
+        purl,
+      </if>
+      <if test="ismenu != null" >
+        ismenu,
+      </if>
+      <if test="parentid != null" >
+        parentId,
+      </if>
+      <if test="pinfo != null" >
+        pinfo,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="permissionid != null" >
+        #{permissionid,jdbcType=INTEGER},
+      </if>
+      <if test="pname != null" >
+        #{pname,jdbcType=VARCHAR},
+      </if>
+      <if test="purl != null" >
+        #{purl,jdbcType=VARCHAR},
+      </if>
+      <if test="ismenu != null" >
+        #{ismenu,jdbcType=INTEGER},
+      </if>
+      <if test="parentid != null" >
+        #{parentid,jdbcType=INTEGER},
+      </if>
+      <if test="pinfo != null" >
+        #{pinfo,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.funzzz.model.PermissionExample" resultType="java.lang.Integer" >
+    select count(*) from permission
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update permission
+    <set >
+      <if test="record.permissionid != null" >
+        permissionId = #{record.permissionid,jdbcType=INTEGER},
+      </if>
+      <if test="record.pname != null" >
+        pname = #{record.pname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.purl != null" >
+        purl = #{record.purl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ismenu != null" >
+        ismenu = #{record.ismenu,jdbcType=INTEGER},
+      </if>
+      <if test="record.parentid != null" >
+        parentId = #{record.parentid,jdbcType=INTEGER},
+      </if>
+      <if test="record.pinfo != null" >
+        pinfo = #{record.pinfo,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update permission
+    set permissionId = #{record.permissionid,jdbcType=INTEGER},
+      pname = #{record.pname,jdbcType=VARCHAR},
+      purl = #{record.purl,jdbcType=VARCHAR},
+      ismenu = #{record.ismenu,jdbcType=INTEGER},
+      parentId = #{record.parentid,jdbcType=INTEGER},
+      pinfo = #{record.pinfo,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.funzzz.model.Permission" >
+    update permission
+    <set >
+      <if test="pname != null" >
+        pname = #{pname,jdbcType=VARCHAR},
+      </if>
+      <if test="purl != null" >
+        purl = #{purl,jdbcType=VARCHAR},
+      </if>
+      <if test="ismenu != null" >
+        ismenu = #{ismenu,jdbcType=INTEGER},
+      </if>
+      <if test="parentid != null" >
+        parentId = #{parentid,jdbcType=INTEGER},
+      </if>
+      <if test="pinfo != null" >
+        pinfo = #{pinfo,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where permissionId = #{permissionid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.funzzz.model.Permission" >
+    update permission
+    set pname = #{pname,jdbcType=VARCHAR},
+      purl = #{purl,jdbcType=VARCHAR},
+      ismenu = #{ismenu,jdbcType=INTEGER},
+      parentId = #{parentid,jdbcType=INTEGER},
+      pinfo = #{pinfo,jdbcType=VARCHAR}
+    where permissionId = #{permissionid,jdbcType=INTEGER}
+  </update>
+</mapper>

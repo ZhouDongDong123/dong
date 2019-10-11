@@ -1,0 +1,25 @@
+fieldset {
+	width: 700px;
+	height: 100%;
+	display: block;
+	padding: 100px 0 0 50px;
+	border: none;
+}
+span{
+	color: red;
+	font-size: 12px;
+}
+fieldset label {
+	width: 130px;
+	display: inline-block;
+	text-align: right;
+}
+
+input {
+	margin: 10px;
+}
+
+.button {
+	width: 330px;
+	text-align: right;
+}

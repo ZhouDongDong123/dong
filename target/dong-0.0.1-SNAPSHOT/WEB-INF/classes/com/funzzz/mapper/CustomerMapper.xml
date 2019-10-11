@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.funzzz.mapper.CustomerMapper" >
+  <resultMap id="BaseResultMap" type="com.funzzz.model.Customer" >
+    <id column="cid" property="cid" jdbcType="INTEGER" />
+    <result column="cusName" property="cusname" jdbcType="VARCHAR" />
+    <result column="Address" property="address" jdbcType="VARCHAR" />
+    <result column="contact" property="contact" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="EmployeesMap" type="Employees" >
+  	    <id column="emp_id" property="empId" />
+    	<result column="username" property="username" />
+    	<result column="password" property="password" />
+    	<result column="tel" property="tel" />
+    	<result column="name" property="name" />
+    	<result column="email" property="email" />
+    	<result column="emptype" property="emptype" />
+    	<result column="roleId" property="roleId" />
+  </resultMap>
+  <resultMap id="BaseResultMapIncludeEmplyees" type="com.funzzz.model.Customer" >
+    <id column="cid" property="cid" jdbcType="INTEGER" />
+    <result column="cusName" property="cusname" jdbcType="VARCHAR" />
+    <result column="Address" property="address" jdbcType="VARCHAR" />
+    <result column="contact" property="contact" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+<!--  一对多  -->
+<!--    <collection property="list" ofType="Employees">-->
+<!--    </collection>-->
+		<!--  一对多子权限查询  -->
+		<collection property="list" select="selectEmployeesByCid" column="cid" />
+  </resultMap>
+	<!-- 这个用来查找对应的专员根据顾客id -->
+  <select id="selectEmployeesByCid" parameterType="Integer" resultMap="EmployeesMap" >
+  		   select e.emp_id,e.username,e.password,e.tel,e.name,e.email,e.emptype,e.roleId  from customer c,employees e,customershare sc
+				    where c.cid=sc.cid and sc.emp_id = e.emp_id and c.cid=#{cid}
+  </select>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    cid, cusName, Address, contact, tel, email
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.funzzz.model.CustomerExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from customer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from customer
+    where cid = #{cid,jdbcType=INTEGER}
+  </select>
+  
+<!-- 查询所有客户信息（包括所属专员） -->
+<!--    emp_id | username | PASSWORD | tel         | NAME          | email       | emptype  | roleId 	-->
+<!--cid | cusName | Address  | contact | tel    | email-->
+  <select id="selectAllCustomer" resultMap="BaseResultMapIncludeEmplyees" >
+    select cid, cusName, Address, contact, tel, email from customer
+  </select>
+  
+	<!--通过用户名查所有顾客  -->
+   <select id="selectAllCustomerByUsername" resultMap="BaseResultMapIncludeEmplyees" parameterType="String" >
+   	select c.*   from employees e,customer c,customershare sc where c.cid=sc.cid and 
+   	sc.emp_id = e.emp_id and e.username=#{username}
+  </select>
+  <!-- 通过id得到名字 -->
+   <select id="selectCusNameById" resultType="String" parameterType="Integer">
+    select cusName from customer where cid=#{cid}
+  </select>
+  <!-- 通过名字得到id-->
+   <select id="selectCusIdByName" resultType="Integer" parameterType="String">
+    select cid from customer where cusName=#{cusName}
+  </select>
+  
+  
+<!-- 这个好像有问题 
+ 这个每个用户对象中list只会有一条数据折耳根不好（而且对于张晓明客户来说相当于有两个对象了这个和里面list作用不符合）
+
+ cid | cusName | Address  | contact | tel    | email        | emp_id | username | PASSWORD | tel | NAME | email       | emptype  | roleId |
+|   1 | 张晓明  | 安徽宿州 | 张叔叔  | 东东   | 20131@qq.com |      1 | haibara  | 123456   | 173 | 东东 | 2013@qq.com | 经理     |      1 |
+|   1 | 张晓明  | 安徽宿州 | 张叔叔  | 东东   | 20131@qq.com |      2 | 张三     | 123456   | 187 | 张三 | 2014@qq.com | 普通员工 |      2 |
+|   2 | 王玉    | 浙江宁波 | 187     | 王叔叔 | 20141@qq.com |      2 | 张三     | 123456   | 187 | 张三 | 2014@qq.com | 普通员工 |      2 |
+|   3 | 文晓璐  | 张家庄   | 186     | 文叔叔 | 20151@qq.com |      3 | 李四     | 123456   | 186 | 李四 | 2015@qq.com | 普通员工 |      2 |
+|   3 | 文晓璐  | 张家庄   | 186     | 文叔叔 | 20151@qq.com |      1 | haibara  | 123456   | 173 | 东东 | 2013@qq.com | 经理     |      1 |
+
+-->
+  
+  
+  
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from customer
+    where cid = #{cid,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.funzzz.model.CustomerExample" >
+    delete from customer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.funzzz.model.Customer" >
+    insert into customer (cid, cusName, Address, 
+      contact, tel, email
+      )
+    values (#{cid,jdbcType=INTEGER}, #{cusname,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
+      #{contact,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.funzzz.model.Customer" >
+    insert into customer
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        cid,
+      </if>
+      <if test="cusname != null" >
+        cusName,
+      </if>
+      <if test="address != null" >
+        Address,
+      </if>
+      <if test="contact != null" >
+        contact,
+      </if>
+      <if test="tel != null" >
+        tel,
+      </if>
+      <if test="email != null" >
+        email,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        #{cid,jdbcType=INTEGER},
+      </if>
+      <if test="cusname != null" >
+        #{cusname,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="contact != null" >
+        #{contact,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        #{email,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.funzzz.model.CustomerExample" resultType="java.lang.Integer" >
+    select count(*) from customer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <update id="updateByExampleSelective" parameterType="map" >
+    update customer
+    <set >
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=INTEGER},
+      </if>
+      <if test="record.cusname != null" >
+        cusName = #{record.cusname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null" >
+        Address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.contact != null" >
+        contact = #{record.contact,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tel != null" >
+        tel = #{record.tel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.email != null" >
+        email = #{record.email,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update customer
+    set cid = #{record.cid,jdbcType=INTEGER},
+      cusName = #{record.cusname,jdbcType=VARCHAR},
+      Address = #{record.address,jdbcType=VARCHAR},
+      contact = #{record.contact,jdbcType=VARCHAR},
+      tel = #{record.tel,jdbcType=VARCHAR},
+      email = #{record.email,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.funzzz.model.Customer" >
+    update customer
+    <set >
+      <if test="cusname != null" >
+        cusName = #{cusname,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        Address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="contact != null" >
+        contact = #{contact,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        tel = #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where cid = #{cid,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.funzzz.model.Customer" >
+    update customer
+    set cusName = #{cusname,jdbcType=VARCHAR},
+      Address = #{address,jdbcType=VARCHAR},
+      contact = #{contact,jdbcType=VARCHAR},
+      tel = #{tel,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR}
+    where cid = #{cid,jdbcType=INTEGER}
+  </update>
+</mapper>

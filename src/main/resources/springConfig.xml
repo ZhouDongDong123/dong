@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd ">
+
+<!-- <bean name="pdi" class="com.funzzz.dao.ProductDaoImpl">
+</bean> -->
+<!-- 指定spring读取db.properties文件 -->
+<context:property-placeholder location="classpath:db.properties"/>
+<!-- 扫包 ，因为spring-mybatis会自动把service报下的注解放到spring ioc中 -->
+<context:component-scan base-package="com.funzzz.service" />
+
+
+<!-- 1、数据库连接池 -->
+<bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+	<property name="url" value="${jdbc.URL}" />
+	<property name="driverClassName" value="${jdbc.Driver}" />
+	<property name="username" value="${jdbc.USER}" />
+	<property name="password" value="${jdbc.PASSWORD}" />
+</bean>
+<!-- 2、注解扫包配置 -->
+<context:component-scan base-package="com.funzzz.mapper" />
+<context:component-scan base-package="com.funzzz.model" />
+
+<!-- 3、sqlSessionFactory配置 -->   <!-- 这个利用spring和mybatis整合包的org.mybatis.spring.SqlSessionFactoryBean对象生成 sqlSessionFactory-->
+<bean name="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	<property name="configLocation" value="classpath:myBatisConfig.xml" />
+	<property name="dataSource" ref="dataSource" />
+</bean>
+<!-- 4、mapper配置 两种方式一种扫包一种单个配置（这个太麻烦） -->
+
+<!-- 这个就是这个类org.mybatis.spring.mapper.MapperScannerConfigurer把dao层和mapper扫包放到spring Ioc中 -->
+<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	<property name="basePackage" value="com.funzzz.mapper" />
+</bean>
+
+<!-- target -->
+<!-- <bean name="productServiceImpl" class="com.funzzz.service.ProductServiceImpl" scope="prototype">
+	<property name="name" value="productService"></property>
+	<property name="pdi" ref="pdi"></property>
+</bean> -->
+<!-- advice -->
+<!-- <bean name="myAdvice" class="com.funzzz.advice.MyAdvice"></bean> -->
+
+<!-- 配置切面 -->
+<!-- <aop:config>
+	 <aop:pointcut expression="execution(* web132.service.*Service.*(..))" id="mycutpointForService"/>
+	 <aop:pointcut expression="execution(* com.funzzz.service.*.*(..))" id="mycutpointForService"/>
+	 描述通知
+	 <aop:aspect ref="myAdvice">
+	 	
+		 	一共有五种通知
+		 	 把myAdvice里的before方法,作为前置通知织入到 mycutpointForService 中
+	 	 
+	 	<aop:before method="before" pointcut-ref="mycutpointForService" />
+	 	<aop:after-returning method="afterReturning" pointcut-ref="mycutpointForService" />
+	 	<aop:around method="around" pointcut-ref="mycutpointForService" />
+	 	<aop:after-throwing method="afterException" pointcut-ref="mycutpointForService"/>
+	 	<aop:after method="after" pointcut-ref="mycutpointForService" />
+	 </aop:aspect>
+</aop:config> -->
+
+<!-- ================================================spring事务处理========================================== -->
+<!-- 事务所核心管理器,封装了所有事务操作, 依懒于连接池 -->
+<!-- 定义事务管理器 -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">		
+	<property name="dataSource" ref="dataSource" />
+</bean>
+<!--  -->
+<!-- 先配置事务模版对象 < 编码事务要用到; 注解和xml配置用不到事务模版 >-->
+<bean name="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+	<property name="transactionManager" ref="transactionManager"></property>
+</bean>
+
+<!-- 使用注解配置事务不使用xml -->
+<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+<!-- 配置事务通知 -->
+<!-- <tx:advice id="txAdvice" transaction-manager="transactionManager">
+	<tx:attributes>
+	
+		以方法为单位,指定的方法应用什么事务的属性
+		isolation: 隔离级别
+		propagation: 传播行为
+		read-only: 是否只读<如果只是查询之类的语句可以只读. 更新类的语句不能只读,不然报错>
+	
+	 	这里用通配符的方式,可以进行批量的配置
+		<tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED" read-only="false" />
+		<tx:method name="modify*" isolation="DEFAULT" propagation="REQUIRED" read-only="false" />
+		<tx:method name="set*" isolation="DEFAULT" propagation="REQUIRED" read-only="false" />
+		<tx:method name="find*" isolation="DEFAULT" propagation="REQUIRED" read-only="true" />
+		<tx:method name="select*" isolation="DEFAULT" propagation="REQUIRED" read-only="true" />
+		<tx:method name="get*" isolation="DEFAULT" propagation="REQUIRED" read-only="true" />
+		<tx:method name="remove*" isolation="DEFAULT" propagation="REQUIRED" read-only="false" />
+	</tx:attributes>
+</tx:advice> -->
+<!-- 配置通知织入目标对象 -->
+<!-- <aop:config  proxy-target-class="true">
+	<aop:pointcut expression="execution(* com.funzzz.service.*Impl.*(..))" id="txShiwu"/>
+	                                      
+	配置切面
+	<aop:advisor advice-ref="txAdvice" pointcut-ref = "txShiwu"/>
+</aop:config> -->
+
+
+<!-- ================================================shrio整合配置========================================== -->
+<!-- 1、注册加密管理器===加密方法和加盐次数设置 -->
+<!-- <bean name="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+	<property name="HashAlgorithmName" value="md5"></property>
+	<property name="hashIterations" value="1"></property>
+</bean>
+ -->
+<bean name="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <!-- 加密算法为SHA-256 -->
+        <property name="hashAlgorithmName" value="md5"></property>
+        <!-- 加密迭代次数 -->
+        <property name="hashIterations" value="1"></property>
+        <!--是否存储散列后的密码为16进制，为 true：.toHex()，为 false：.toBase64()-->
+      <!--   <property name="storedCredentialsHexEncoded" value="false"></property> -->
+ </bean>
+
+<!-- 2、注册realm -->
+<bean name="realm" class="com.funzzz.realm.LoginRealm">
+	<property name="credentialsMatcher" ref="credentialsMatcher"></property>
+</bean>
+
+<!-- 3、注册安全管理器 -->
+
+ <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="realm" />
+</bean>
+<!-- 4、shiro的Filter过滤器 -->
+<!--    <property name="successUrl" value="/index.jsp"/> --><!--登录成功后页面-->
+
+<bean name="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+
+	<property name="securityManager" ref="securityManager"/> <!--安全管理-->
+    <property name="loginUrl" value="/index.action"/> <!--登录页面-->
+
+    <property name="unauthorizedUrl" value="/login"/>
+	<property name="filterChainDefinitions">
+					
+		<value>
+			/index.action = anon <!-- 首页 -->
+			/loginForMyRealm.action = anon <!-- 登陆的方法1 -->
+			/login.action = anon <!-- 登陆的方法 2-->
+			/index.jsp = anon
+			/changeLanguage.action = anon
+			<!-- 下面是静态资源 -->
+			/bootstrap*/** = anon
+			/css/** = anon
+			/fonts/** = anon
+			/images/** = anon
+			/img/** = anon
+			/javascript/** = anon
+			/js/** = anon
+			/bower_components/** = anon
+			<!-- 剩下所有authc -->
+			/** = anon
+		</value>
+	</property>
+</bean>
+
+
+</beans>

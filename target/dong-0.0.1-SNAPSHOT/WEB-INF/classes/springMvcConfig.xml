@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd ">
+
+<context:component-scan base-package="com.funzzz.controller" />
+
+
+<mvc:annotation-driven />
+
+<!-- 配置视图解析器 -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	<property name="prefix" value="/WEB-INF/"></property>
+	<!-- <property name="suffix" value=".jsp"></property> -->
+</bean>
+<!-- ================================================配置SpringMVC的登陆拦截器========================================== -->
+<!-- 配置登陆拦截器 -->
+<!-- <mvc:interceptors>
+	<mvc:interceptor>
+		<mvc:mapping path="/fdsssasafdsfdsafdsfwqew**"/>
+		<bean class="com.funzzz.interceptors.LoginInterceptor"></bean>
+	</mvc:interceptor>
+
+</mvc:interceptors> -->
+
+<!-- ================================================配置国际化配置文件========================================== -->
+
+<!-- 1、资源文件配置 -->
+<bean name="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" >
+	<property name="basename" value="message" />
+</bean>
+<mvc:interceptors>
+<!-- 2配置国际化拦截器 -->
+	<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" ></bean>
+</mvc:interceptors>
+<!-- 配置本地会话解决 -->
+<bean name="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+</bean>
+<!-- ================================================配置springmvc和ajax交互时数据转换========（不使用注解驱动时时候）================================== -->
+<!--处理器适配器 -->
+	<!--<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+		<list>
+		<bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"></bean>
+		</list>
+		</property>
+	</bean>-->
+<!-- ================================================shiro========================================== -->
+<!-- 开启aop，对Controller类代理 -->
+<aop:config proxy-target-class="true"></aop:config>
+<!-- 开启shiro注解支持 --><!--保证shiro执行对象-->
+<bean class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+<!--通知其-->
+<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor" >
+	<property name="securityManager" ref="securityManager" />
+	
+	
+</bean>
+
+<!-- ================================================异常拦截一般用于拦截contorller异常========================================== -->
+<bean class="com.funzzz.exception.ControllerException" />
+</beans>

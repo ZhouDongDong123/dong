@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns="http://java.sun.com/xml/ns/javaee" 
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
+id="WebApp_ID" version="3.0" >
+
+<welcome-file-list>
+	<welcome-file>/index.action</welcome-file>
+</welcome-file-list>
+
+
+
+<!-- 这个是给项目启动设置一些参数给监听器使用生成sqlSessionFactory -->
+<context-param>
+	<param-name>contextConfigLocation</param-name>
+	<param-value>classpath:springConfig.xml</param-value>
+</context-param>
+
+<!-- spring内置监听器用于生成sqlSessionFactory -->
+<listener>
+	<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+
+
+<!-- 配置前端控制器; 其实就和servlet差不多 -->
+  <servlet>
+  	<servlet-name>springmvcDemo</servlet-name>
+  	<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+  	<!-- 配置加载SpringMVC的主配置文件: 这个和spring类似 -->
+  	<!-- 如果这个没有配置,默认是: /WEB-INF/${servlet-name}-servlet.xml -->
+  	<init-param>
+  		<param-name>contextConfigLocation</param-name>
+  		<param-value>classpath:springMvcConfig.xml</param-value>
+  	</init-param>
+  </servlet>
+  
+  
+  
+  
+  <servlet-mapping>
+  	<servlet-name>springmvcDemo</servlet-name>
+  	<!-- 
+  		1: /* 拦截所有的文件(jsp,js,png,css)  全拦截,不建议使用
+  		2:  *.action    *.do   拦截以action 或  do 结尾的请求; 
+  		        这个扩展名可以自定义   (肯定能使用)一般用在后台系统
+  		3: /  拦截所有(不包括jsp),其它都拦截:如 js, css, png  (建议使用)一般用在前台->面向消费者
+  	 -->
+	<url-pattern>*.action</url-pattern>  	
+  </servlet-mapping>
+
+  <!-- Shiro拦截器 -->
+  <!-- ===================================================================================== -->
+    <!-- 统一编码filter -->
+    <filter>
+        <filter-name>charsetEncoding</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+
+    <!-- shiro的filter-->
+    <filter>
+        <filter-name>shiroFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <init-param>
+        <!-- 該值缺省爲false,表示生命週期由SpringApplicationContext管理,設置爲true則表示由servlet container管理 -->
+            <param-name>targetFilterLifecycle</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+
+    <!-- 统一编码的filter-mapping-->
+    <filter-mapping>
+        <filter-name>charsetEncoding</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- shiro的filter-mapping-->
+    <filter-mapping>
+        <filter-name>shiroFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+
+</web-app>
