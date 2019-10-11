@@ -39,6 +39,7 @@ function removeMorecustomervisits(currentPage,obj){ //jquery获取复选框值
     $('input[name="emp_ids"]:checked').each(function(){ 
         chk_value.push($(this).val());
     }); 
+    
     if(chk_value.length==0){
     	alert('你还没有选择任何内容！请先选中要删除的数据');
     }else{
