@@ -58,7 +58,7 @@
 		<dependency>
 		    <groupId>org.apache.poi</groupId>
 		    <artifactId>poi</artifactId>
-		    <version>4.1.0</version>
+		    <version>4.1.1</version>
 		</dependency>
 		<!-- =============================事务织入依赖======================================= -->
 		<!-- https://mvnrepository.com/artifact/aspectj/aspectjweaver -->
